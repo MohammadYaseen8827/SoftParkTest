@@ -1,0 +1,71 @@
+﻿@page "/houses/"
+
+@inject IHouseRepository _repo
+<h3 class="card-title">Index</h3>
+<hr />
+<br />
+@if (Model == null)
+{
+    <LoadingMessage Message="Loading Houses" />
+}
+else
+{
+    <AuthorizeView>
+        <a href="/houses/create" class="btn btn-primary">
+            <span class="oi oi-plus"></span>
+            Create New House
+        </a>
+        <br />
+    </AuthorizeView>
+    @if (Model.Count < 1)
+    {
+        <LoadingMessage Message="There are no Houses in the data store.
+                        Click 'Create House' to Begin " />
+    }
+    else
+    {
+        <table class="table table-responsive">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Offer Type</th>
+                    <th>Address</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var house in Model)
+                {
+                    <tr>
+                         <td>
+                            <img src="uploads/@house.ImageUrl" class="img-thumbnail" style="height:100px;width:100px" />
+                        </td>
+                        <td>@house.OfferType</td>
+                        <td>@string.Format("House Number {0}, Postal Code {1}, Street {2}", house.Address.HouseNumber, house.Address.PostalCode, house.Address.Street)</td>
+                        <td>
+                            <a href="/Houses/view/@house.Id" class="btn btn-primary">
+                                <span class="oi oi-book"></span>
+                            </a>
+                                <a href="/Houses/edit/@house.Id" class="btn btn-warning">
+                                    <span class="oi oi-pencil"></span>
+                                </a>
+                                <a href="/Houses/delete/@house.Id" class="btn btn-danger">
+                                    <span class="oi oi-delete"></span>
+                                </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    private IList<House> Model;
+
+    protected async override Task OnInitializedAsync()
+    {
+        Model = await _repo.Get(Endpoints.HousesEndpoint);
+
+    }
+}

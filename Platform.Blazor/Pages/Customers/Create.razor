@@ -1,0 +1,107 @@
+﻿@page "/customers/create/"
+
+
+@inject ICustomerRepository _repo
+@inject IFileUpload _fileUpload
+@inject NavigationManager _navManager
+@inject IToastService _toastService
+
+<h3>Create Customer</h3>
+<hr />
+<br />
+@if (!isSuccess)
+{
+    <ErrorMessage Message="Something Went Wrong With the Operation" />
+}
+
+<EditForm Model="Model" OnValidSubmit="HandleCreate">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="firstName">First Name</label>
+        <InputText @bind-Value="Model.FirstName" class="form-control" id="firstName" />
+    </div>
+    <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <InputText @bind-Value="Model.LastName" class="form-control" id="lastName" />
+    </div>
+    <div class="form-group">
+        <label for="phoneNumbers">Phone numbers</label>
+        <button type="button" @onclick="AddPhoneNumber" class="btn btn-primary">Add Phone number</button>
+
+        @for (int i = 0; i < phoneNumbers.Count; i++)
+        {
+            int phoneNumberIndex = i;
+            <div>
+                <input type="text" @onchange="(e) => UpdatePhoneNumber(phoneNumberIndex, e.Value.ToString())" value="@phoneNumbers[i]" />
+                <button type="button" @onclick="() => RemovePhoneNumber(phoneNumberIndex)" class="btn btn-outline-danger">Remove</button>
+            </div>
+        }
+    </div>
+
+    <div class="form-group">
+        <label for="addresses">Addresses</label>
+        <button type="button" @onclick="AddAdress" class="btn btn-primary">Add Address</button>
+
+        <br />
+
+        @for (int k = 0; k < addresses.Count; k++)
+        {
+            int addressIndex = k;
+            <div>
+                <input type="text" placeholder="Street" @onchange="(e) => UpdateStreet(addressIndex, e.Value.ToString())" value="@addresses[k].Street" />
+                <input type="text" placeholder="Postal Code" @onchange="(e) => UpdatePostalCode(addressIndex, e.Value.ToString())" value="@addresses[k].PostalCode" />
+                <input type="text" placeholder="House Number" @onchange="(e) => UpdateHouseNumber(addressIndex, e.Value.ToString())" value="@addresses[k].HouseNumber" />
+                <button type="button" @onclick="() => RemoveAddress(addressIndex)" class="btn btn-outline-danger">Remove</button>
+            </div>
+        }
+    </div>
+
+    <button  class="btn btn-primary" type="submit">
+        <span class="oi oi-pencil"></span>
+        Create Customer
+    </button>
+    <button @onclick="BackToList" class="btn btn-outline-secondary">
+        <span class="oi oi-media-skip-backward"></span>
+        Back To List
+    </button>
+</EditForm>
+
+@code {
+    private Customer Model = new Customer();
+
+    private bool isSuccess = true;
+    private List<string> phoneNumbers = new List<string>();
+    private List<Address> addresses = new List<Address>();
+
+    private void AddPhoneNumber() => phoneNumbers.Add("");
+    private void AddAdress() => addresses.Add(new Address());
+
+    private void RemovePhoneNumber(int i) => phoneNumbers.RemoveAt(i);
+
+    private void UpdatePhoneNumber(int i, string phoneNumber) => phoneNumbers[i] = phoneNumber;
+
+    private void UpdateStreet(int k, string street) => addresses[k].Street = street;
+    private void UpdatePostalCode(int k, string postalCode) => addresses[k].PostalCode = postalCode;
+    private void UpdateHouseNumber(int k, string houseNumber) => addresses[k].HouseNumber = houseNumber;
+    private void RemoveAddress(int k) => addresses.RemoveAt(k);
+
+    private async Task HandleCreate()
+    {
+        Model.PhoneNumbers = phoneNumbers;
+
+        Model.Addresses = addresses;
+
+        isSuccess = await _repo.Create(Endpoints.CustomersEndpoint, Model);
+        if (isSuccess)
+        {
+            _toastService.ShowSuccess("Customer Created Successfully", "");
+            BackToList();
+        }
+    }
+
+    private void BackToList()
+    {
+        _navManager.NavigateTo("/customers/");
+    }
+}

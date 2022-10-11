@@ -1,0 +1,141 @@
+﻿@page "/customers/view/{Id}"
+@inject ICustomerRepository _repo
+@inject NavigationManager _navManager
+@inject IToastService _toastService
+
+
+<h3>View Customer Details</h3>
+<hr />
+<br />
+@if (int.Parse(Id) < 1 || string.IsNullOrWhiteSpace(Id))
+{
+    <ErrorMessage Message="Invalid Selection. Please Try Again" />
+}
+else if (Model == null)
+{
+    <LoadingMessage Message="Loading Customer Details" />
+}
+else
+{
+    @*_toastService.ShowInfo($"Now Viewing {Model.FirstName} {Model.FirstName}", "");*@
+
+    <div class="row">
+        <div class="col-6">
+            <table class="table table-responsive">
+                <tr>
+                    <td>
+                        <strong>First Name</strong>
+                    </td>
+
+
+                    <td>
+                        <strong>@Model.FirstName</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Last Name</strong>
+                    </td>
+                    <td>
+                        <strong>@Model.LastName</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Phone numbers</strong>
+                    </td>
+                    <td>
+                        <table>
+                            <tr>
+
+                                @foreach (var phoneNumber in Model.PhoneNumbers)
+                                {
+                                    <td>
+                                        @phoneNumber
+                                    </td>
+                                }
+                            </tr>
+
+                        </table>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table>
+                            <tr>
+                                <td><strong>Addresses</strong></td>
+                            </tr>
+
+                        </table>
+
+                    </td>
+                    <td>
+                        <table>
+                            <tr>
+                                <td> Street - </td>
+                                <td> PostalCode - </td>
+                                <td> HouseNumber </td>
+                            </tr>
+
+                            @foreach (var address in Model.Addresses)
+                            {
+                                <tr>
+                                    <td> @address.Street </td>
+                                    <td> @address.PostalCode </td>
+                                    <td> @address.HouseNumber</td>
+                                </tr>
+                            }
+
+                        </table>
+
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+}
+
+<button @onclick="GoToEdit" class="btn btn-outline-warning">
+    <span class="oi oi-pencil"></span>
+    Edit Customer
+</button>
+<button @onclick="GoToDelete" class="btn btn-outline-danger">
+    <span class="oi oi-circle-x"></span>
+    Delete Customer
+</button>
+<button @onclick="BackToList" class="btn btn-outline-secondary">
+    <span class="oi oi-media-skip-backward"></span>
+    Back To List
+</button>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private Customer Model = new Customer();
+
+    protected override async Task OnInitializedAsync()
+    {
+        int id = Convert.ToInt32(Id);
+        Model = await _repo.Get(Endpoints.CustomersEndpoint, id);
+
+    }
+
+    private void BackToList()
+    {
+        _navManager.NavigateTo("/customers/");
+    }
+
+    private void GoToEdit()
+    {
+        _navManager.NavigateTo($"/customers/edit/{Model.Id}");
+    }
+
+    private void GoToDelete()
+    {
+        _navManager.NavigateTo($"/customers/delete/{Model.Id}");
+    }
+
+}

@@ -1,0 +1,112 @@
+﻿@page "/customers"
+
+@inject ICustomerRepository _repo
+@inject IToastService _toastService
+
+<h3>Index</h3>
+<hr />
+<br />
+@if (Model == null)
+{
+    <LoadingMessage Message="Loading Customers" />
+}
+else
+{
+    <AuthorizeView>
+        <Authorized>
+            <a href="/customers/create" class="btn btn-primary">
+                <span class="oi oi-plus"></span>
+                Create New Customer
+            </a>
+        </Authorized>
+    </AuthorizeView>
+
+    <br />
+    <br />
+    <br />
+    @if (Model.Count < 1)
+    {
+        <LoadingMessage Message="There are no Customers in the data store.
+                        Click 'Create Customer' to Begin " />
+    }
+    else
+    {
+        <table class="table table-responsive">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Phone Number</th>
+                    <th>
+                        <table>
+                            <tr>Addresses</tr>
+                            <tr>
+                                <td> Street - </td>
+                                <td> PostalCode - </td>
+                                <td> HouseNumber </td>
+                            </tr>
+                        </table>
+                    </th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var customer in Model)
+                {
+                    <tr>
+                        <td>@customer.FirstName</td>
+                        <td>@customer.LastName</td>
+                        <td>
+                            <table>
+                                @foreach (var phoneNumber in customer.PhoneNumbers)
+                                {
+                                    <tr>
+                                        @phoneNumber
+                                    </tr>
+                                }
+                            </table>
+
+                        </td>
+                        <td>
+                            <table>
+                                @foreach (var address in customer.Addresses)
+                                {
+                                    <tr>
+                                        <td> @address.Street - </td>
+                                        <td> @address.PostalCode - </td>
+                                        <td> @address.HouseNumber</td>
+                                    </tr>
+                                }
+
+                            </table>
+
+                        </td>
+
+                        <td>
+                            <a href="/Customers/view/@customer.Id" class="btn btn-primary">
+                                <span class="oi oi-book "></span>
+                            </a>
+                            <a href="/Customers/edit/@customer.Id" class="btn btn-warning">
+                                <span class="oi oi-pencil"></span>
+                            </a>
+                            <a href="/Customers/delete/@customer.Id" class="btn btn-danger">
+                                <span class="oi oi-delete"></span>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+
+
+@code {
+    private IList<Customer> Model;
+
+    protected async override Task OnInitializedAsync()
+    {
+        Model = await _repo.Get(Endpoints.CustomersEndpoint);
+    }
+}

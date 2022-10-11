@@ -1,0 +1,78 @@
+﻿@page "/Houses/view/{Id}"
+@inject IHouseRepository _repo
+@inject NavigationManager _navManager
+@inject IToastService _toastService
+
+<h3 class="card-title">View House Details</h3>
+<hr />
+<br />
+@if (int.Parse(Id) < 1 || string.IsNullOrWhiteSpace(Id))
+{
+    <ErrorMessage Message="Invalid Selection. Please Try Again" />
+}
+else if (Model == null)
+{
+    <LoadingMessage Message="Loading House Details" />
+}
+else
+{
+    _toastService.ShowInfo(string.Format("House Number {0}, Postal Code {1}, Street {2}", Model.Address.HouseNumber, Model.Address.PostalCode, Model.Address.Street), "");
+    <div class="col-md-4">
+        <table class="table table-responsive">
+            <tr>
+                <td>
+                 <img src="uploads/@Model.ImageUrl" class="img-thumbnail" style="height:100px;width:100px" />
+                 </td>
+            </tr>
+            <tr>
+                <td>Offer Type</td>
+                <td>@Model.OfferType</td>
+            </tr>
+        </table>
+        <br />
+    </div>
+}
+<br />
+
+
+<button @onclick="GoToEdit" class="btn btn-outline-warning">
+    <span class="oi oi-pencil"></span>
+    Edit House
+</button>
+<button @onclick="GoToDelete" class="btn btn-outline-danger">
+    <span class="oi oi-circle-x"></span>
+    Delete House
+</button>
+<button @onclick="BackToList" class="btn btn-outline-secondary">
+    <span class="oi oi-media-skip-backward"></span>
+    Back To List
+</button>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private House Model = new House();
+
+    protected override async Task OnInitializedAsync()
+    {
+        int id = Convert.ToInt32(Id);
+        Model = await _repo.Get(Endpoints.HousesEndpoint, id);
+    }
+
+    private void BackToList()
+    {
+        _navManager.NavigateTo("/houses/");
+    }
+
+    private void GoToEdit()
+    {
+        _navManager.NavigateTo($"/houses/edit/{Model.Id}");
+    }
+
+    private void GoToDelete()
+    {
+        _navManager.NavigateTo($"/houses/delete/{Model.Id}");
+    }
+
+}

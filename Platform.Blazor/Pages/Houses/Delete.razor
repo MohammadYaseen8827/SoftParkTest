@@ -1,0 +1,91 @@
+﻿@page "/houses/delete/{Id}"
+
+@inject IHouseRepository _repo
+@inject NavigationManager _navManager
+@inject IToastService _toastService
+
+<h3 class="card-title">Are You Sure You Want to Delete This Record?</h3>
+<hr />
+<br />
+@if (!isSuccess)
+{
+    <ErrorMessage Message="Somewthing Went Wrong WIth the Operation" />
+}
+
+@if (int.Parse(Id) < 1 || string.IsNullOrWhiteSpace(Id))
+{
+    <ErrorMessage Message="Invalid Selection. Please Try Again" />
+}
+else if (Model == null)
+{
+    <LoadingMessage Message="Loading House Details" />
+}
+else
+{
+    <div class="col-md-4">
+        <table class="table table-responsive">
+            <tr>
+                <td>Offer Type</td>
+                <td>@Model.OfferType</td>
+            </tr>
+             <tr>
+                    <td>
+                        <strong>Address</strong>
+                    </td>
+                    <td>House Number</td>
+                    <td>@Model.Address.HouseNumber</td>
+                    <td>Postal Code</td>
+                    <td>@Model.Address.PostalCode</td>
+                    <td>Street</td>
+                    <td>@Model.Address.Street</td>
+             </tr>
+
+        </table>
+        <div class="col-4">
+            <img src="uploads/@Model.ImageUrl" style="height:300px; width:300px" />
+        </div>
+        <br />
+    </div>
+}
+<br />
+
+<button @onclick="DeleteHouse" class="btn btn-danger">
+    <span class="oi oi-delete"></span>
+    Delete House
+</button>
+
+<button @onclick="BackToList" class="btn btn-outline-secondary">
+    <span class="oi oi-media-skip-backward"></span>
+    Back To List
+</button>
+
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    private House Model = new House();
+
+    private bool isSuccess = true;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        int id = Convert.ToInt32(Id);
+        Model = await _repo.Get(Endpoints.HousesEndpoint, id);
+    }
+
+    private async Task DeleteHouse()
+    {
+        isSuccess = await _repo.Delete(Endpoints.HousesEndpoint, Model.Id);
+        if (isSuccess)
+        {
+            _toastService.ShowError("House Deleted Successfully", "");
+            BackToList();
+        }
+    }
+
+    private void BackToList()
+    {
+        _navManager.NavigateTo("/houses/");
+    }
+}
